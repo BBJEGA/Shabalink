@@ -47,9 +47,14 @@ const services = [
     },
 ];
 
+// Mock User Data (Replace with Supabase fetch)
+const mockUser = {
+    name: "Shamsuyusuf", // This would actually come from DB
+};
+
 export default function Dashboard() {
     return (
-        <div className="max-w-md mx-auto min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen bg-gray-50 pb-20">
             {/* Header */}
             <header className="bg-white p-4 flex justify-between items-center sticky top-0 z-20 shadow-sm">
                 <h1 className="text-xl font-bold text-indigo-600">Shabalink</h1>
@@ -61,27 +66,45 @@ export default function Dashboard() {
                 </div>
             </header>
 
-            <div className="p-4">
-                <WelcomeHeader />
-                <BankDetails />
-                <WalletCard />
+            <div className="max-w-7xl mx-auto p-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Left Column (Desktop) / Top (Mobile) */}
+                    <div className="lg:col-span-2">
+                        <div className="lg:grid lg:grid-cols-2 lg:gap-6">
+                            <div className="lg:col-span-2">
+                                <WelcomeHeader name={mockUser.name} />
+                            </div>
+                            <div className="lg:col-span-1">
+                                <BankDetails accountName={mockUser.name} />
+                            </div>
+                            <div className="lg:col-span-1">
+                                <WalletCard />
+                            </div>
+                        </div>
+                    </div>
 
-                <h3 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Services</h3>
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                    {services.map((service) => (
-                        <ServiceCard
-                            key={service.title}
-                            title={service.title}
-                            icon={service.icon}
-                            href={service.href}
-                            colorClass={service.color}
-                        />
-                    ))}
-                </div>
+                    {/* Right Column (Desktop) / Bottom (Mobile) - Services */}
+                    <div className="lg:col-span-1">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-full">
+                            <h3 className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wider">Services</h3>
+                            <div className="grid grid-cols-2 gap-4 mb-8">
+                                {services.map((service) => (
+                                    <ServiceCard
+                                        key={service.title}
+                                        title={service.title}
+                                        icon={service.icon}
+                                        href={service.href}
+                                        colorClass={service.color}
+                                    />
+                                ))}
+                            </div>
 
-                <h3 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Recent Activity</h3>
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center text-gray-500 py-8">
-                    <p className="text-sm">No recent transactions</p>
+                            <h3 className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wider">Recent Activity</h3>
+                            <div className="bg-gray-50 rounded-xl p-4 text-center text-gray-500 py-12">
+                                <p className="text-sm">No recent transactions</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

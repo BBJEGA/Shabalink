@@ -1,11 +1,15 @@
-
 'use client';
 
 import { useState } from 'react';
 
-export default function BankDetails() {
+interface BankDetailsProps {
+    accountName?: string;
+    accountNumber?: string;
+    bankName?: string;
+}
+
+export default function BankDetails({ accountName = "User", accountNumber = "6669691730", bankName = "PALMPAY" }: BankDetailsProps) {
     const [copied, setCopied] = useState(false);
-    const accountNumber = "6669691730";
 
     const handleCopy = () => {
         navigator.clipboard.writeText(accountNumber);
@@ -49,12 +53,12 @@ export default function BankDetails() {
 
                 <div className="flex items-center justify-between">
                     <span className="text-gray-600">Bank Name:</span>
-                    <span className="font-bold text-gray-900">PALMPAY</span>
+                    <span className="font-bold text-gray-900">{bankName}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
                     <span className="text-gray-600">Account Name:</span>
-                    <span className="font-bold text-gray-900">HMK Data - Shamsuyusuf</span>
+                    <span className="font-bold text-gray-900">Shabalink - {accountName}</span>
                 </div>
 
                 <div className="flex items-center justify-between">

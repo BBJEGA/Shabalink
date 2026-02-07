@@ -1,12 +1,16 @@
 
 import Link from 'next/link';
 
-export default function WelcomeHeader() {
+interface WelcomeHeaderProps {
+    name?: string;
+}
+
+export default function WelcomeHeader({ name = "User" }: WelcomeHeaderProps) {
     return (
         <div className="bg-blue-50 rounded-2xl p-6 mb-6 flex flex-col items-center text-center relative overflow-hidden">
             <div className="relative z-10 w-full max-w-sm">
                 <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                    Welcome back, <br /> <span className="text-indigo-600">Shamsuyusuf!</span>
+                    Welcome back, <br /> <span className="text-indigo-600">{name}!</span>
                 </h2>
                 <p className="text-gray-600 text-sm mb-6">
                     Your account has been verified successfully.
