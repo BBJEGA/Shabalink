@@ -1,12 +1,14 @@
 
-import Link from 'next/link';
+interface WalletCardProps {
+    balance?: number;
+}
 
-export default function WalletCard() {
+export default function WalletCard({ balance = 0.00 }: WalletCardProps) {
     return (
         <div className="bg-indigo-600 rounded-2xl p-6 text-white shadow-lg mb-8 relative overflow-hidden">
             <div className="relative z-10">
                 <p className="text-indigo-100 text-sm font-medium mb-1">Wallet Balance</p>
-                <h2 className="text-3xl font-bold">₦ 0.00</h2>
+                <h2 className="text-3xl font-bold">₦ {balance.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h2>
             </div>
 
             {/* Decorative background circles */}

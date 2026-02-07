@@ -23,16 +23,50 @@ interface CreateVirtualAccountParams {
 
 // --- Strowallet Integration (Stage 1) ---
 export async function createStrowalletAccount(user: CreateVirtualAccountParams) {
-    // TODO: Implement actual API call
-    console.log('Creating Strowallet account for:', user.email);
+    if (!STROWALLET_API_KEY) {
+        console.warn("STROWALLET_API_KEY is missing. Using Mock Data.");
+        return {
+            success: true,
+            account_number: '1234567890',
+            account_name: `Shabalink - ${user.name}`,
+            bank_name: 'Palmpay (Mock)'
+        };
+    }
 
-    // Mock Response
-    return {
-        success: true,
-        account_number: '1234567890',
-        account_name: `Shabalink - ${user.name}`,
-        bank_name: 'Palmpay'
-    };
+    try {
+        // 1. Create a user/wallet on Strowallet
+        // Note: Endpoint and payload structure should be verified with Strowallet docs
+        const response = await fetch(`${STROWALLET_URL}/create-account`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${STROWALLET_API_KEY}` // or whatever auth scheme they use
+            },
+            body: JSON.stringify({
+                customer_name: user.name,
+                customer_email: user.email,
+                customer_phone: user.phone || '',
+                nin: '', // Optional/Required depending on provider
+                bvn: ''  // Not needed for Tier 1 usually
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to create Strowallet account');
+        }
+
+        return {
+            success: true,
+            account_number: data.account_number,
+            account_name: data.account_name,
+            bank_name: data.bank_name || 'Palmpay'
+        };
+    } catch (error: any) {
+        console.error('Strowallet API Error:', error);
+        throw new Error(error.message);
+    }
 }
 
 // --- Monnify Integration (Stage 2 - Post KYC) ---

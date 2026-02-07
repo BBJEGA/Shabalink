@@ -1,8 +1,10 @@
-
-import WalletCard from '../components/WalletCard';
-import ServiceCard from '../components/ServiceCard';
+import { createClient } from '@/utils/supabase/server';
+import { redirect } from 'next/navigation';
 import WelcomeHeader from '../components/WelcomeHeader';
 import BankDetails from '../components/BankDetails';
+import WalletCard from '../components/WalletCard';
+import ServiceCard from '../components/ServiceCard';
+import WalletInitializer from '../components/WalletInitializer';
 
 const services = [
     {
@@ -47,19 +49,31 @@ const services = [
     },
 ];
 
-// Mock User Data (Replace with Supabase fetch)
-const mockUser = {
-    name: "Shamsuyusuf", // This would actually come from DB
-};
+export default async function Dashboard() {
+    const supabase = await createClient();
 
-export default function Dashboard() {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        redirect('/'); // Or /login if you have one
+    }
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+    // Logic: If no account number, we show the Initializer.
+    // If account number exists, we show BankDetails.
+
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
             {/* Header */}
             <header className="bg-white p-4 flex justify-between items-center sticky top-0 z-20 shadow-sm">
                 <h1 className="text-xl font-bold text-indigo-600">Shabalink</h1>
                 <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
-                    {/* Placeholder for user avatar */}
+                    {/* Placeholder for user avatar - could be replaced with profile image */}
                     <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
@@ -72,13 +86,24 @@ export default function Dashboard() {
                     <div className="lg:col-span-2">
                         <div className="lg:grid lg:grid-cols-2 lg:gap-6">
                             <div className="lg:col-span-2">
-                                <WelcomeHeader name={mockUser.name} />
+                                <WelcomeHeader name={profile?.full_name || user.email?.split('@')[0]} />
                             </div>
                             <div className="lg:col-span-1">
-                                <BankDetails accountName={mockUser.name} />
+                                {profile?.account_number ? (
+                                    <BankDetails
+                                        accountName={profile.account_name || profile.full_name}
+                                        accountNumber={profile.account_number}
+                                        bankName={profile.bank_name || 'PALMPAY'}
+                                    />
+                                ) : (
+                                    <WalletInitializer
+                                        userEmail={user.email || ''}
+                                        userName={profile?.full_name || 'User'}
+                                    />
+                                )}
                             </div>
                             <div className="lg:col-span-1">
-                                <WalletCard />
+                                <WalletCard balance={profile?.wallet_balance || 0} />
                             </div>
                         </div>
                     </div>
