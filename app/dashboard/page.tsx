@@ -5,6 +5,7 @@ import BankDetails from '../components/BankDetails';
 import WalletCard from '../components/WalletCard';
 import ServiceCard from '../components/ServiceCard';
 import WalletInitializer from '../components/WalletInitializer';
+import DashboardHeader from '../components/DashboardHeader';
 
 const services = [
     {
@@ -70,15 +71,10 @@ export default async function Dashboard() {
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
             {/* Header */}
-            <header className="bg-white p-4 flex justify-between items-center sticky top-0 z-20 shadow-sm">
-                <h1 className="text-xl font-bold text-indigo-600">Shabalink</h1>
-                <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
-                    {/* Placeholder for user avatar - could be replaced with profile image */}
-                    <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                </div>
-            </header>
+            <DashboardHeader
+                userEmail={user.email}
+                fullName={profile?.full_name}
+            />
 
             <div className="max-w-7xl mx-auto p-4">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
