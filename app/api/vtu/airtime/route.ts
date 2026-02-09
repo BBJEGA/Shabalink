@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     const { user, profile, supabase } = validation as any;
 
     // 2. Calculate Pricing
-    const pricing = calculateVtuPrice(faceValue, 'airtime', profile.role || 'customer');
+    const pricing = calculateVtuPrice(faceValue, 'airtime', (profile.tier as any) || 'smart');
     const finalPrice = pricing.sellingPrice;
 
     // 3. Check Balance

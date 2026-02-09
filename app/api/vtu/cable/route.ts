@@ -40,7 +40,7 @@ export async function POST(request: Request) {
         const { user, profile, supabase } = validation as any;
 
         // 3. Pricing (+100 Fee)
-        const pricing = calculateVtuPrice(planCost, 'cable', profile.role || 'customer');
+        const pricing = calculateVtuPrice(planCost, 'cable', (profile.tier as any) || 'smart');
         const finalPrice = pricing.sellingPrice;
 
         // 4. Check Balance

@@ -32,7 +32,7 @@ export async function POST(request: Request) {
         const { user, profile, supabase } = validation as any;
 
         // 2. Pricing (+100 Service Fee)
-        const pricing = calculateVtuPrice(billAmount, 'electricity', profile.role || 'customer');
+        const pricing = calculateVtuPrice(billAmount, 'electricity', (profile.tier as any) || 'smart');
         const finalPrice = pricing.sellingPrice;
 
         // 3. Balance Check

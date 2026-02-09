@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     const { user, profile, supabase } = validation as any;
 
     // 3. Calculate Final Selling Price
-    const pricing = calculateVtuPrice(planCost, 'data', profile.role || 'customer');
+    const pricing = calculateVtuPrice(planCost, 'data', (profile.tier as any) || 'smart');
     const finalPrice = pricing.sellingPrice;
 
     // 4. Verify User Consent (Price Check)

@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { isquare } from '@/lib/isquare';
-import { calculateVtuPrice, ServiceType, UserRole } from '@/utils/pricing';
+import { calculateVtuPrice, ServiceType, UserTier } from '@/utils/pricing';
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -14,20 +14,20 @@ export async function GET(request: Request) {
 
     const supabase = await createClient();
 
-    // 1. Get User Role
-    // We default to 'customer' if not logged in or no profile found
-    let userRole: UserRole = 'customer';
+    // 1. Get User Tier
+    // We default to 'smart' if not logged in or no profile found
+    let userTier: UserTier = 'smart';
 
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
         const { data: profile } = await supabase
             .from('profiles')
-            .select('role')
+            .select('tier')
             .eq('id', user.id)
             .single();
 
-        if (profile?.role === 'reseller') {
-            userRole = 'reseller';
+        if (profile?.tier) {
+            userTier = profile.tier as UserTier;
         }
     }
 
@@ -41,13 +41,13 @@ export async function GET(request: Request) {
             const cost = Number(plan.amount) || 0;
             if (cost === 0) return plan; // No price to calculate (e.g. valid-only check)
 
-            const pricing = calculateVtuPrice(cost, type, userRole);
+            const pricing = calculateVtuPrice(cost, type, userTier);
 
             return {
                 ...plan,
                 amount: pricing.sellingPrice,
                 original_amount: pricing.costPrice, // Optional: for debugging or strikethrough
-                role_applied: pricing.appliedRole
+                tier_applied: pricing.appliedTier
             };
         });
 

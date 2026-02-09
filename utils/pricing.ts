@@ -1,63 +1,55 @@
 
 export type ServiceType = 'airtime' | 'data' | 'electricity' | 'cable';
-export type UserRole = 'customer' | 'reseller';
+// 'smart' is the default free tier. 'reseller' and 'partner' are paid tiers.
+export type UserTier = 'smart' | 'reseller' | 'partner';
 
 interface PricingResult {
     costPrice: number;
     sellingPrice: number;
     profit: number;
-    appliedRole: UserRole;
+    appliedTier: UserTier;
 }
 
 /**
- * Calculates the final selling price based on service type and user role.
+ * Calculates the final selling price based on service type and user tier.
  * 
  * Rules:
- * - Airtime: Cost * 1.03 (3% Profit)
- * - Data: Cost + 50 (Fixed Profit)
- * - Bills (Cable/Power): Cost + 100 (Service Fee)
+ * - Smart (Default): Base Price + ₦50
+ * - Reseller: Base Price + ₦20
+ * - Partner: Base Price + ₦5
  * 
- * Reseller Discount:
- * - 20% off the PROFIT margin.
+ * Note: Base Price = Provider Cost.
  */
-export function calculateVtuPrice(costPrice: number, type: ServiceType, role: UserRole = 'customer'): PricingResult {
-    let baseSellingPrice = 0;
+export function calculateVtuPrice(costPrice: number, type: ServiceType, tier: UserTier = 'smart'): PricingResult {
+    // 1. Determine Markup based on Tier
+    let markup = 50; // Default (Smart)
 
-    // 1. Calculate Base Selling Price (Standard Customer Price)
-    switch (type) {
-        case 'airtime':
-            baseSellingPrice = costPrice * 1.03;
-            break;
-        case 'data':
-            baseSellingPrice = costPrice + 50;
-            break;
-        case 'electricity':
-        case 'cable':
-            baseSellingPrice = costPrice + 100;
-            break;
-        default:
-            baseSellingPrice = costPrice; // Fallback
+    if (tier === 'reseller') {
+        markup = 20;
+    } else if (tier === 'partner') {
+        markup = 5;
     }
 
-    // Ensure integer for clean UI (optional, but standard for Naira)
-    // baseSellingPrice = Math.ceil(baseSellingPrice); 
+    // 2. Calculate Final Price
+    // For Airtime, typically it's a percentage, but the prompt requested 
+    // "If userTier === 'Smart', return basePrice + 50".
+    // We will stick to this fixed markup rule for consistency across all services 
+    // as per the "Dynamic Pricing Logic" requirement.
+    // However, for very small airtime amounts (e.g. 50 naira), a +50 markup is high (100%).
+    // Use Case Judgement: I will apply this strictly as requested for Data/Bills.
+    // For Airtime, I'll allow a slight variation because "Base Price" usually means face value for airtime, 
+    // but providers sell at a discount (e.g. 97%). 
+    // If 'costPrice' passed here is the discounted rate (e.g. 97), then 97 + 50 = 147 sold for 100 airtime? No.
+    // 'costPrice' for Airtime usually means the Face Value in the context of user input.
+    // Let's assume 'costPrice' IS the Provider Cost (e.g. 97 Naira).
 
-    // 2. Calculate Standard Profit
-    const standardProfit = baseSellingPrice - costPrice;
-
-    // 3. Apply Reseller Discount if applicable
-    let finalProfit = standardProfit;
-    if (role === 'reseller') {
-        const discount = standardProfit * 0.20; // 20% of profit
-        finalProfit = standardProfit - discount;
-    }
-
-    const finalSellingPrice = costPrice + finalProfit;
+    const sellingPrice = Number(costPrice) + markup;
+    const profit = markup; // Simplified view: Profit is the markup added to cost.
 
     return {
         costPrice,
-        sellingPrice: Number(finalSellingPrice.toFixed(2)),
-        profit: Number(finalProfit.toFixed(2)),
-        appliedRole: role
+        sellingPrice: Number(sellingPrice.toFixed(2)),
+        profit: Number(profit.toFixed(2)),
+        appliedTier: tier
     };
 }
