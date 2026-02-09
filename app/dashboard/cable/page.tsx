@@ -56,12 +56,12 @@ export default function CablePage() {
         setMessage({ type: '', text: '' });
         setVerifying(true);
         try {
-            const res = await fetch('/api/vtu/cable', {
-                method: 'POST', body: JSON.stringify({ ...formData, action: 'verify' })
+            const res = await fetch('/api/vtu/verify', {
+                method: 'POST', body: JSON.stringify({ type: 'cable', ...formData })
             });
             const data = await res.json();
             if (data.success) {
-                setFormData(prev => ({ ...prev, customer_name: data.data.customer_name || 'Verified User' }));
+                setFormData(prev => ({ ...prev, customer_name: data.data?.name || data.data?.customer_name || 'Verified User' }));
                 setStep(2);
             } else {
                 throw new Error(data.error || 'Verification failed');

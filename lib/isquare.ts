@@ -147,9 +147,11 @@ export class ISquareClient {
 
     // --- CABLE TV ---
     async verifySmartcard(params: { cable_id: string; smartcard: string }) {
-        return this.request('/cable/verify-smartcard/', 'POST', {
-            plan_id: 1, // Generic or derived
-            smartcard: params.smartcard
+        return this.request('/cable/verify/', 'POST', { // Standardized endpoint
+            cable_id: params.cable_id,
+            smartcard_number: params.smartcard, // Common param name
+            smartcard: params.smartcard, // Fallback common param name
+            service_id: params.cable_id // Fallback
         });
     }
 

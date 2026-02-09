@@ -49,9 +49,18 @@ export default function BuyDataPage() {
 
     const handleNetworkSelect = (id: string) => {
         setFormData(prev => ({ ...prev, network_id: id, plan_id: '' }));
-        // Filter plans by network (assuming plan has 'network' or 'network_id' field)
-        // Mocks use 'network' as string '1', '2' etc.
-        const filtered = allPlans.filter(p => p.network === id || p.network_id === id);
+
+        // Debugging: Log all plans to see structure
+        console.log('All Plans:', allPlans);
+
+        // Filter plans by network (handle string/number mismatch)
+        // API might return 'network_id' as "1" or 1.
+        const filtered = allPlans.filter(p => {
+            const planNetId = p.network || p.network_id;
+            return String(planNetId) === String(id);
+        });
+
+        console.log('Filtered Plans for Network', id, ':', filtered);
         setAvailablePlans(filtered);
     };
 
@@ -149,8 +158,8 @@ export default function BuyDataPage() {
                                                 key={net.id}
                                                 onClick={() => handleNetworkSelect(net.id)}
                                                 className={`aspect-square rounded-2xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${formData.network_id === net.id
-                                                        ? 'border-green-600 bg-green-50 text-green-700'
-                                                        : 'border-gray-100 hover:border-gray-200 text-gray-500'
+                                                    ? 'border-green-600 bg-green-50 text-green-700'
+                                                    : 'border-gray-100 hover:border-gray-200 text-gray-500'
                                                     }`}
                                             >
                                                 <Signal size={20} strokeWidth={2.5} />
@@ -176,8 +185,8 @@ export default function BuyDataPage() {
                                                         key={plan.id}
                                                         onClick={() => handlePlanSelect(plan)}
                                                         className={`p-4 rounded-2xl border text-left transition-all ${formData.plan_id === plan.id
-                                                                ? 'border-green-500 bg-green-50 ring-1 ring-green-500'
-                                                                : 'border-gray-100 hover:border-green-200 bg-gray-50/50'
+                                                            ? 'border-green-500 bg-green-50 ring-1 ring-green-500'
+                                                            : 'border-gray-100 hover:border-green-200 bg-gray-50/50'
                                                             }`}
                                                     >
                                                         <div className="font-bold text-gray-800 text-sm">{plan.name}</div>

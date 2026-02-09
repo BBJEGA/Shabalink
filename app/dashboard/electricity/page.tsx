@@ -48,12 +48,15 @@ export default function ElectricityPage() {
 
         setVerifying(true);
         try {
-            const res = await fetch('/api/vtu/electricity', {
-                method: 'POST', body: JSON.stringify({ ...formData, action: 'verify' })
+            const res = await fetch('/api/vtu/verify', {
+                method: 'POST', body: JSON.stringify({ type: 'electricity', ...formData })
             });
             const data = await res.json();
             if (data.success) {
-                setFormData(prev => ({ ...prev, customer_name: data.data.customer_name || 'Verified Meter' }));
+                // My new route returns { success: true, data: { name: ... } }
+                // ISquare usually returns { name: "Customer Name" } or similar inside 'data'.
+                // Adjusting to match common pattern:
+                setFormData(prev => ({ ...prev, customer_name: data.data?.name || data.data?.customer_name || 'Verified Meter' }));
                 setStep(2);
             } else {
                 throw new Error(data.error || 'Verification failed');

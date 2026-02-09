@@ -8,11 +8,11 @@ interface BankDetailsProps {
     bankName?: string;
 }
 
-export default function BankDetails({ accountName = "User", accountNumber = "6669691730", bankName = "PALMPAY" }: BankDetailsProps) {
+export default function BankDetails({ accountName, accountNumber, bankName = "PALMPAY" }: BankDetailsProps) {
     const [copied, setCopied] = useState(false);
 
     const handleCopy = () => {
-        navigator.clipboard.writeText(accountNumber);
+        navigator.clipboard.writeText(accountNumber || '');
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
@@ -32,7 +32,7 @@ export default function BankDetails({ accountName = "User", accountNumber = "666
                 <div className="flex items-center justify-between">
                     <span className="text-gray-600">Account Number:</span>
                     <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-lg text-gray-900">{accountNumber}</span>
+                        <span className="font-mono font-bold text-lg text-gray-900">{accountNumber || 'Not Assigned'}</span>
                         <button
                             onClick={handleCopy}
                             className="text-green-500 hover:text-green-600 transition-colors"

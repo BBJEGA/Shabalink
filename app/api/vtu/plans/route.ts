@@ -33,10 +33,12 @@ export async function GET(request: Request) {
 
     try {
         // 2. Fetch Base Plans from Provider
-        const plans = (await isquare.getServices(type as any)) as any[];
+        const response = await isquare.getServices(type as any);
+        const plans = Array.isArray(response) ? response : (response.data || []);
+
 
         // 3. Apply Pricing Logic
-        const pricedPlans = plans.map(plan => {
+        const pricedPlans = plans.map((plan: any) => {
             // Basic amount check. Some APIs return string, some number.
             const cost = Number(plan.amount) || 0;
             if (cost === 0) return plan; // No price to calculate (e.g. valid-only check)
