@@ -24,7 +24,9 @@ export function calculateVtuPrice(costPrice: number, type: ServiceType, tier: Us
     // 1. Determine Markup based on Tier
     let markup = 50; // Default (Smart)
 
-    if (tier === 'reseller') {
+    if (type === 'airtime') {
+        markup = 0; // Airtime has NO markup. Selling Price = Cost Price.
+    } else if (tier === 'reseller') {
         markup = 20;
     } else if (tier === 'partner') {
         markup = 5;

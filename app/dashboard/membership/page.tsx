@@ -111,7 +111,7 @@ export default function MembershipPage() {
                     </div>
                     <ul className="space-y-3">
                         <li className="flex gap-2 text-sm"><Check size={16} className="text-purple-600" /> <strong>₦30 Discount</strong> per GB</li>
-                        <li className="flex gap-2 text-sm"><Check size={16} className="text-purple-600" /> Cheaper Airtime Rates</li>
+                        <li className="flex gap-2 text-sm"><Check size={16} className="text-purple-600" /> Better Airtime Discounts</li>
                         <li className="flex gap-2 text-sm"><Check size={16} className="text-purple-600" /> Priority Support</li>
                         <li className="flex gap-2 text-sm"><Check size={16} className="text-purple-600" /> One-time Fee</li>
                     </ul>
@@ -147,7 +147,8 @@ export default function MembershipPage() {
                         <p className="text-sm text-gray-400">Maximum profits & API Access</p>
                     </div>
                     <ul className="space-y-3">
-                        <li className="flex gap-2 text-sm"><Check size={16} className="text-yellow-500" /> <strong>Wholesale Rates</strong> (+₦5 Markup)</li>
+                        <li className="flex gap-2 text-sm"><Check size={16} className="text-yellow-500" /> <strong>Wholesale Data Rates</strong> (+₦5 Markup)</li>
+                        <li className="flex gap-2 text-sm"><Check size={16} className="text-yellow-500" /> <strong>Highest Airtime Discounts</strong></li>
                         <li className="flex gap-2 text-sm"><Check size={16} className="text-yellow-500" /> <strong>API Access</strong> Integration</li>
                         <li className="flex gap-2 text-sm"><Check size={16} className="text-yellow-500" /> Dedicated Account Manager</li>
                         <li className="flex gap-2 text-sm"><Check size={16} className="text-yellow-500" /> Premium Support</li>
