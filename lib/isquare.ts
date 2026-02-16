@@ -30,7 +30,7 @@ export class ISquareClient {
             'Content-Type': 'application/json',
         };
 
-        // Use api-key and secret-key headers as requested
+        // 1. API Key / Secret Key Custom Headers (Preferred)
         if (process.env.ISQUARE_API_KEY) {
             headers['api-key'] = process.env.ISQUARE_API_KEY;
         }
@@ -38,9 +38,18 @@ export class ISquareClient {
             headers['secret-key'] = process.env.ISQUARE_SECRET_KEY;
         }
 
-        // Add Fallback Bearer if needed
-        if (!headers['api-key'] && process.env.ISQUARE_API_KEY) {
-            headers['Authorization'] = `Bearer ${process.env.ISQUARE_API_KEY}`;
+        // 2. Authorization Header Strategy
+        if (!headers['api-key']) {
+            if (process.env.ISQUARE_API_KEY) {
+                // Bearer Fallback
+                headers['Authorization'] = `Bearer ${process.env.ISQUARE_API_KEY}`;
+            } else if (process.env.ISQUARE_USERNAME && process.env.ISQUARE_PASSWORD) {
+                // Basic Auth Fallback (User provided valid credentials)
+                const credentials = Buffer.from(`${process.env.ISQUARE_USERNAME}:${process.env.ISQUARE_PASSWORD}`).toString('base64');
+                headers['Authorization'] = `Basic ${credentials}`;
+            } else {
+                console.warn("Missing ISQUARE credentials (API_KEY or USERNAME/PASSWORD)");
+            }
         }
 
         try {
@@ -50,7 +59,16 @@ export class ISquareClient {
                 body: body ? JSON.stringify(body) : undefined,
             });
 
-            const data = await response.json();
+            const text = await response.text();
+            let data: any;
+
+            try {
+                data = JSON.parse(text);
+            } catch {
+                // If JSON parse fails, it's likely HTML (Error Page)
+                console.error(`ISquare API returned non-JSON [${endpoint}]:`, text.substring(0, 200)); // Log first 200 chars
+                throw new Error(`API Error: Received invalid response from provider (Status ${response.status})`);
+            }
 
             if (!response.ok) {
                 console.error(`ISquare API Error [${endpoint}] Status ${response.status}:`, data);
@@ -58,7 +76,7 @@ export class ISquareClient {
             }
 
             return data;
-        } catch (error: unknown) {
+        } catch (error: any) {
             const errorMessage = error instanceof Error ? error.message : 'Connection to provider failed';
             console.error(`ISquare API Exception [${endpoint}]:`, error);
             throw new Error(errorMessage);
