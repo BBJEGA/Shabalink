@@ -149,13 +149,9 @@ export class ISquareClient {
            if the API expects it.
         */
         if (serviceId) {
-            if (type === 'data') {
-                // Data endpoints typically use 'network' or 'network_id'
-                endpoint += `?network=${serviceId}`;
-            } else {
-                // Electricity/Cable typically use 'service_id' or return all
-                endpoint += `?service_id=${serviceId}`;
-            }
+            // For data, valid params might be 'network' or 'network_id'
+            // For now, let's append generic service_id, but the calling route might need to filter.
+            endpoint += `?network=${serviceId}`;
         }
 
         return this.request(endpoint, 'GET');
