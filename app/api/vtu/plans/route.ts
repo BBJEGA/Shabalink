@@ -78,23 +78,27 @@ export async function GET(request: Request) {
                 plan.api_price
             ) || 0;
 
-            if (cost === 0) return plan; // Or skip?
-
             const pricing = calculateVtuPrice(cost, type, userTier);
+
+            // Ensure we fallback to the raw cost if pricing fails or cost is 0 (to avoid undefined)
+            const finalAmount = pricing.sellingPrice || cost;
 
             return {
                 ...plan,
                 id: plan.variation_id || plan.id || plan.variation_code,
                 name: plan.name || plan.variation_name || plan.description,
-                amount: pricing.sellingPrice,
-                original_amount: pricing.costPrice,
+                type: plan.type || plan.variation_type, // Pass through type if it exists
+                amount: finalAmount, // Ensure this is always set
+                original_amount: cost,
                 tier_applied: pricing.appliedTier
             };
         });
 
-        // Debug: Log first plan to help user if price is still missing
+        // Debug: Log first plan keys to help debug missing fields
         if (pricedPlans.length > 0) {
-            console.log('[Debug] First Plan:', JSON.stringify(pricedPlans[0]));
+            const first = pricedPlans[0];
+            console.log('[Debug] First Plan Keys:', Object.keys(first));
+            console.log('[Debug] First Plan Amount:', first.amount);
         }
 
         return NextResponse.json({

@@ -29,13 +29,19 @@ export default function BuyDataPage() {
     });
 
     // Helper: Categorize Plan Name
-    const getPlanType = (name: string) => {
-        const n = name.toUpperCase();
-        if (n.includes('SME')) return 'SME';
-        if (n.includes('CORPORATE') || n.includes('CG')) return 'CORPORATE';
-        if (n.includes('GIFTING')) return 'GIFTING';
-        if (n.includes('AWOOF')) return 'AWOOF';
-        return 'NORMAL'; // Fallback
+    const getPlanType = (plan: any) => {
+        // If API provides a type, usage it? (Usually API types are 'data', 'airtime', not 'sme')
+        // So we rely on the name.
+        const name = (plan.name || '').toUpperCase();
+
+        if (name.includes('SME')) return 'SME';
+        if (name.includes('CORPORATE') || name.includes('CG') || name.includes('CORP')) return 'CORPORATE';
+        if (name.includes('GIFTING')) return 'GIFTING';
+        if (name.includes('AWOOF')) return 'AWOOF';
+        if (name.includes('DATA SHARE') || name.includes('SHARE')) return 'DATA SHARE';
+
+        // If no keywords match, it might be the "Normal" or "Direct" plan.
+        return 'GIFTING/NORMAL';
     };
 
     // 1. Fetch Plans on demand when network is selected
@@ -58,7 +64,7 @@ export default function BuyDataPage() {
                     setMessage({ type: 'error', text: 'No plans available for this network at the moment.' });
                 } else {
                     // Extract unique types
-                    const types = Array.from(new Set(plans.map((p: any) => getPlanType(p.name)))).sort();
+                    const types = Array.from(new Set(plans.map((p: any) => getPlanType(p)))).sort();
                     setPlanTypes(types as string[]);
                 }
             } else {
@@ -138,7 +144,7 @@ export default function BuyDataPage() {
     };
 
     // Filter available plans based on selected type
-    const filteredPlans = allPlans.filter(p => getPlanType(p.name) === selectedType);
+    const filteredPlans = allPlans.filter(p => getPlanType(p) === selectedType);
 
     return (
         <div className="min-h-screen bg-green-50/30 pb-20 font-sans">
