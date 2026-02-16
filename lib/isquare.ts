@@ -26,6 +26,7 @@ export class ISquareClient {
 
     private async request(endpoint: string, method: 'GET' | 'POST', body?: Record<string, unknown>): Promise<APIResponse> {
         const url = `${this.baseUrl}${endpoint}`;
+        console.log(`[ISquare] Requesting: ${method} ${url}`); // User-visible log for debugging
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
         };
@@ -129,16 +130,9 @@ export class ISquareClient {
                 endpoint = '/data/plans/';
                 break;
             case 'tv':
-                // Inferred based on patterns: /cable/services/ or /cable/
-                // Falling back to widely used pattern in similar APIs if exact not found
-                // But /cable/ returning 404 suggests we need a subpath.
-                // Let's try /cable/ for now but we might need /cable/tv/ or similar.
-                // Re-reading search: "CABLE TV SUBSCRIPTION" category exists.
-                // Let's try to fetch cable variations via a more standard route if 404 persists.
-                // Actually, let's use /cable/ which is the standard base, but if it fails, the user log will show it.
-                // Wait, previous attempt with /cable/ failed (404).
-                // Let's try /cable/services/ based on /electricity/services/ pattern.
-                endpoint = '/cable/services/';
+                // User reported /cable/services/ failed.
+                // Trying base /cable/ which often lists categories/plans in REST APIs
+                endpoint = '/cable/';
                 break;
             case 'electricity':
                 // Verified: /electricity/services/

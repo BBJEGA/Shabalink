@@ -37,22 +37,48 @@ export async function GET(request: Request) {
         const response = await isquare.getVariations(apiType, serviceId || undefined);
         const plans = Array.isArray(response) ? response : (response.data || response.variations || []);
 
+        // 3. Filter Plans (if API returned all)
+        // If type is data, we expect serviceId (network_id) to match
+        let distinctPlans = plans;
+        if (type === 'data' && serviceId) {
+            // Try to filter by network if the field exists
+            const filtered = plans.filter((p: any) =>
+                String(p.network || p.network_id || p.service_id) === String(serviceId)
+            );
+            if (filtered.length > 0) {
+                distinctPlans = filtered;
+            }
+        }
+
         // 3. Apply Pricing Logic
-        const pricedPlans = plans.map((plan: Record<string, unknown>) => {
-            const cost = Number(plan.amount || plan.price || plan.cost) || 0;
-            if (cost === 0) return plan;
+        const pricedPlans = distinctPlans.map((plan: Record<string, unknown>) => {
+            // Extended Price Mapping
+            const cost = Number(
+                plan.variation_amount ||
+                plan.amount ||
+                plan.price ||
+                plan.cost ||
+                plan.rate
+            ) || 0;
+
+            if (cost === 0) return plan; // Or skip?
 
             const pricing = calculateVtuPrice(cost, type, userTier);
 
             return {
                 ...plan,
-                id: plan.id || plan.variation_id || plan.variation_code,
-                name: plan.name || plan.variation_name,
+                id: plan.variation_id || plan.id || plan.variation_code,
+                name: plan.name || plan.variation_name || plan.description,
                 amount: pricing.sellingPrice,
                 original_amount: pricing.costPrice,
                 tier_applied: pricing.appliedTier
             };
         });
+
+        // Debug: Log first plan to help user if price is still missing
+        if (pricedPlans.length > 0) {
+            console.log('[Debug] First Plan:', JSON.stringify(pricedPlans[0]));
+        }
 
         return NextResponse.json({
             success: true,
