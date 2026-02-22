@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
+require('dotenv').config({ path: ['.env.local', '.env'] });
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  console.error('Error: Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables.');
+  console.error('Error: Missing Supabase URL or Key environment variables.');
   process.exit(1);
 }
 
@@ -16,18 +16,30 @@ async function keepAlive() {
   console.log('Pinging Supabase to keep it alive...');
 
   try {
-    // Try to fetch one row from 'users'. If it doesn't exist, it might fail, 
-    // but the connection attempt itself is often enough.
-    // Alternatively, just checking connection or a lightweight query.
-    const { data, error } = await supabase
-      .from('users')
+    // 1. Direct API call to a table we know exists
+    const { data: dbData, error: dbError } = await supabase
+      .from('profiles')
       .select('id')
       .limit(1);
 
-    if (error) {
-      console.log('Supabase ping attempt finished with potential error (expected if table is empty/missing):', error.message);
+    if (dbError) {
+      console.log('Database ping attempt returned an error:', dbError.message);
     } else {
-      console.log('Supabase ping successful. Data received:', data);
+      console.log('Database ping successful. Data received (count):', dbData?.length || 0);
+    }
+
+    // 2. Direct call to Auth API
+    if (supabase.auth && supabase.auth.admin) {
+      const { data: authData, error: authError } = await supabase.auth.admin.listUsers({
+        page: 1,
+        perPage: 1
+      });
+
+      if (authError) {
+        console.log('Auth API ping returned an error:', authError.message);
+      } else {
+        console.log('Auth API ping successful. Users received (count):', authData?.users?.length || 0);
+      }
     }
   } catch (err) {
     console.error('Unexpected error during ping:', err);
