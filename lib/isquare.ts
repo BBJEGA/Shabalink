@@ -112,8 +112,8 @@ export class ISquareClient {
 
         switch (type) {
             case 'data':
-                // Requested endpoint
-                endpoint = '/data/';
+                // Reverted to Verified: /data/plans/
+                endpoint = '/data/plans/';
                 break;
             case 'tv':
                 // User reported /cable/services/ failed.
