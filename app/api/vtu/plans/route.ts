@@ -68,14 +68,13 @@ export async function GET(request: Request) {
         const pricedPlans = distinctPlans.map((plan: Record<string, unknown>) => {
             // Extended Price Mapping
             const cost = Number(
+                plan.api_amount ||
+                plan.reseller_amount ||
+                plan.enduser_amount ||
                 plan.variation_amount ||
                 plan.amount ||
                 plan.price ||
-                plan.cost ||
-                plan.price ||
-                plan.cost ||
-                plan.rate ||
-                plan.api_price
+                plan.cost
             ) || 0;
 
             const pricing = calculateVtuPrice(cost, type, userTier);
