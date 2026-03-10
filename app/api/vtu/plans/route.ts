@@ -4,10 +4,11 @@ import { createClient } from '@/utils/supabase/server';
 import { isquare } from '@/lib/isquare';
 import { calculateVtuPrice, ServiceType, UserTier } from '@/utils/pricing';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') as ServiceType;
-    const serviceId = searchParams.get('service_id');
 
     if (!['data', 'cable', 'electricity'].includes(type)) {
         return NextResponse.json({ error: 'Invalid service type' }, { status: 400 });
@@ -32,40 +33,13 @@ export async function GET(request: Request) {
     }
 
     try {
-        // 2. Fetch Base Plans from Provider V2 Variations
+        // 2. Fetch Base Plans from Provider
         const apiType = type === 'cable' ? 'tv' : (type as any);
-        const response = await isquare.getVariations(apiType, serviceId || undefined);
-        const plans = Array.isArray(response) ? response : (response.data || response.variations || []);
-
-        // 3. Filter Plans (if API returned all)
-        // If type is data, we expect serviceId (network_id) to match
-        let distinctPlans = plans;
-        if (type === 'data' && serviceId) {
-            const { NETWORKS } = require('@/lib/isquare');
-            const networkName = NETWORKS.find((n: any) => n.id === serviceId)?.name?.toUpperCase();
-
-            // Filter logic:
-            // 1. Strict ID match (if field exists)
-            // 2. Fuzzy Name match (if plan name contains 'MTN', etc)
-            const filtered = plans.filter((p: any) => {
-                const pNetworkId = String(p.network || p.network_id || p.service_id || '');
-                const pName = String(p.name || p.variation_name || '').toUpperCase();
-
-                const idMatch = pNetworkId === String(serviceId);
-                const nameMatch = networkName ? pName.includes(networkName) : false;
-
-                // If the plan has a explicit network ID, trust it.
-                // If not, rely on name match.
-                return pNetworkId ? idMatch : nameMatch;
-            });
-
-            if (filtered.length > 0) {
-                distinctPlans = filtered;
-            }
-        }
+        const response = await isquare.getVariations(apiType); // NO serviceId restriction
+        let plans = Array.isArray(response) ? response : (response.data || response.variations || []);
 
         // 3. Apply Pricing Logic
-        const pricedPlans = distinctPlans.map((plan: Record<string, unknown>) => {
+        const pricedPlans = plans.map((plan: Record<string, unknown>) => {
             // Extended Price Mapping
             const cost = Number(
                 plan.api_amount ||

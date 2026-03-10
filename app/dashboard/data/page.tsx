@@ -32,15 +32,60 @@ export default function BuyDataPage() {
         amount: 0
     });
 
-    // Helper: Categorize Plan Name
-    const getPlanType = (plan: any) => {
-        const name = (plan.name || '').toUpperCase();
-        if (name.includes('SME')) return 'SME';
-        if (name.includes('CORPORATE') || name.includes('CG') || name.includes('CORP')) return 'CORPORATE';
-        if (name.includes('GIFTING')) return 'GIFTING';
-        if (name.includes('AWOOF')) return 'AWOOF';
-        if (name.includes('DATA SHARE') || name.includes('SHARE')) return 'DATASHARE';
-        return 'NORMAL DATA';
+    // Category Mapper for ISquare's 18 internal grouped IDs
+    const getNetworkCategoryName = (plan: any) => {
+        const netId = String(plan.network || '');
+        const pName = (plan.name || '').toUpperCase();
+
+        const map: Record<string, string> = {
+            '1': 'MTN DATASHARE',
+            '2': 'MTN NORMAL DATA',
+            '3': 'AIRTEL NORMAL DATA',
+            '4': 'MTN CORPORATE DATA',
+            '5': '9MOBILE NORMAL DATA',
+            '6': 'GLO SME',
+            '7': '9MOBILE SME',
+            '8': 'MTN AWOOF DATA',
+            '9': 'GLO NORMAL DATA',
+            '10': 'GLO CORPORATE DATA',
+            '11': 'GLO CORPORATE DATA',
+            '12': 'MTN NORMAL DATA',
+            '15': 'MTN DATA TRANSFER',
+            '16': 'AIRTEL AWOOF(LOAN-SENSITIVE)',
+            '17': 'MTN SME',
+            '18': 'MTN DATA TRANSFER',
+        };
+
+        let category = map[netId];
+
+        // Fallback robust mapping if ISquare adds new IDs
+        if (!category) {
+            let base = 'NORMAL DATA';
+            if (pName.includes('SME')) base = 'SME';
+            if (pName.includes('CORPORATE') || pName.includes('CORP')) base = 'CORPORATE DATA';
+            if (pName.includes('AWOOF')) base = 'AWOOF DATA';
+            if (pName.includes('SHARE')) base = 'DATASHARE';
+            if (pName.includes('TRANSFER')) base = 'DATA TRANSFER';
+
+            let provider = 'UNKNOWN';
+            if (pName.includes('MTN') || pName.includes('THRYVE') || pName.includes('PULSE')) provider = 'MTN';
+            else if (pName.includes('GLO')) provider = 'GLO';
+            else if (pName.includes('AIRTEL') || pName.includes('BINGE')) provider = 'AIRTEL';
+            else if (pName.includes('9MOBILE')) provider = '9MOBILE';
+
+            category = `${provider} ${base}`;
+        }
+
+        return category;
+    };
+
+    // Determine the root telecom ID required for the purchase API (1=MTN, 2=GLO, 3=9MOBILE, 4=AIRTEL)
+    const getRootNetworkId = (categoryName: string) => {
+        if (categoryName.includes('MTN')) return '1';
+        if (categoryName.includes('GLO')) return '2';
+        if (categoryName.includes('9MOBILE')) return '3';
+        if (categoryName.includes('AIRTEL')) return '4';
+        return '1'; // Default Fallback
     };
 
     // Fetch ALL plans on mount
@@ -48,58 +93,43 @@ export default function BuyDataPage() {
         const fetchAllPlans = async () => {
             setFetchingPlans(true);
             try {
-                // Fetch for all networks (1=MTN, 2=GLO, 3=9MOBILE, 4=AIRTEL)
-                const networkIds = ['1', '2', '3', '4'];
-                const promises = networkIds.map(id =>
-                    fetch(`/api/vtu/plans?type=data&service_id=${id}`).then(async res => {
-                        const data = await res.json();
-                        if (!res.ok) {
-                            return { success: false, error: data.error || `Status ${res.status}` };
-                        }
-                        return data;
-                    })
-                );
+                // Fetch all data plans natively
+                const res = await fetch(`/api/vtu/plans?type=data`, { cache: 'no-store' }); // Ensure absolute no-cache
+                const data = await res.json();
 
-                const results = await Promise.all(promises);
-                const allFetchedPlans: any[] = [];
-                let hasError = false;
-                let errorMessage = '';
-
-                results.forEach((res, index) => {
-                    if (res.success && Array.isArray(res.data)) {
-                        // Tag plans with their network ID since we might lose context
-                        const networkId = networkIds[index];
-                        const plansWithNet = res.data.map((p: any) => ({ ...p, _network_id: networkId }));
-                        allFetchedPlans.push(...plansWithNet);
-                    } else if (res.error) {
-                        hasError = true;
-                        errorMessage = res.error;
-                    }
-                });
-
-                if (hasError && allFetchedPlans.length === 0) {
-                    if (errorMessage.includes("401") || errorMessage.includes("API Error")) {
-                        setMessage({ type: 'error', text: 'Error 401: Check API Keys or Authentication.' });
-                    } else {
-                        setMessage({ type: 'error', text: `Failed to load data plans: ${errorMessage}` });
-                    }
-                    return; // Stop processing since there's an error and no plans
+                if (!res.ok) {
+                    setMessage({ type: 'error', text: data.error || `Status ${res.status}` });
+                    setFetchingPlans(false);
+                    return;
                 }
 
-                // Group Plans
+                const allFetchedPlans = data.data || [];
+
+                if (allFetchedPlans.length === 0) {
+                    setMessage({ type: 'error', text: 'Error: No plans returned. Check API Keys or Authentication.' });
+                    setFetchingPlans(false);
+                    return;
+                }
+
+                // Group Plans by their exact category
                 const groups: Record<string, any[]> = {};
 
-                allFetchedPlans.forEach(plan => {
-                    const networkName = NETWORKS.find(n => n.id === plan._network_id)?.name || 'UNKNOWN';
-                    const planType = getPlanType(plan);
-                    const key = `${networkName} ${planType}`; // e.g. "MTN SME"
+                allFetchedPlans.forEach((plan: any) => {
+                    const categoryName = getNetworkCategoryName(plan);
+                    const rootNetId = getRootNetworkId(categoryName);
 
-                    if (!groups[key]) groups[key] = [];
-                    groups[key].push(plan);
+                    // Inject root network ID for the transaction payload
+                    plan._root_network_id = rootNetId;
+
+                    if (!groups[categoryName]) groups[categoryName] = [];
+                    groups[categoryName].push(plan);
                 });
 
                 setGroupedPlans(groups);
-                setProductTypes(Object.keys(groups).sort());
+
+                // Sort categories ensuring MTN DATASHARE is early
+                const sortedKeys = Object.keys(groups).sort((a, b) => a.localeCompare(b));
+                setProductTypes(sortedKeys);
 
             } catch (e) {
                 console.error("Failed to fetch plans", e);
@@ -129,7 +159,7 @@ export default function BuyDataPage() {
     // Handle Plan Selection
     const handlePlanChange = (planId: string) => {
         const plans = groupedPlans[selectedProduct] || [];
-        const plan = plans.find(p => p.id === planId);
+        const plan = plans.find(p => String(p.id) === String(planId));
 
         if (plan) {
             setSelectedPlanId(planId);
@@ -137,7 +167,7 @@ export default function BuyDataPage() {
                 ...prev,
                 plan_id: planId,
                 amount: plan.amount,
-                network_id: plan._network_id
+                network_id: plan._root_network_id
             }));
         }
     };

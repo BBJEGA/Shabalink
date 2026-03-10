@@ -17,15 +17,15 @@ export async function POST(request: Request) {
     // 1. Fetch Plan to get TRUE Cost Price
     let planCost = 0;
     try {
-        // In a real app with many plans, we might want a efficient lookup. 
-        // For now, getServices returns the list (cached or mock).
-        const plans = await isquare.getServices('data');
-        const plan = plans.find((p: any) => p.id === plan_id || p.plan_id === plan_id);
+        // For now, getVariations returns the list.
+        const response = await isquare.getVariations('data');
+        const plans = Array.isArray(response) ? response : (response.data || response.variations || []);
+        const plan = plans.find((p: any) => String(p.id) === String(plan_id) || String(p.plan_id) === String(plan_id));
 
         if (!plan) {
             return NextResponse.json({ error: 'Invalid Plan ID' }, { status: 400 });
         }
-        planCost = Number(plan.amount); // This is the Provider Price (Cost)
+        planCost = Number(plan.api_amount || plan.amount || plan.reseller_amount || plan.enduser_amount) || 0; // This is the Provider Price (Cost)
     } catch (e: any) {
         return NextResponse.json({ error: 'Failed to fetch plan details: ' + e.message }, { status: 500 });
     }
