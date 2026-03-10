@@ -51,11 +51,19 @@ export default function BuyDataPage() {
                 // Fetch for all networks (1=MTN, 2=GLO, 3=9MOBILE, 4=AIRTEL)
                 const networkIds = ['1', '2', '3', '4'];
                 const promises = networkIds.map(id =>
-                    fetch(`/api/vtu/plans?type=data&service_id=${id}`).then(res => res.json())
+                    fetch(`/api/vtu/plans?type=data&service_id=${id}`).then(async res => {
+                        const data = await res.json();
+                        if (!res.ok) {
+                            return { success: false, error: data.error || `Status ${res.status}` };
+                        }
+                        return data;
+                    })
                 );
 
                 const results = await Promise.all(promises);
                 const allFetchedPlans: any[] = [];
+                let hasError = false;
+                let errorMessage = '';
 
                 results.forEach((res, index) => {
                     if (res.success && Array.isArray(res.data)) {
@@ -63,8 +71,20 @@ export default function BuyDataPage() {
                         const networkId = networkIds[index];
                         const plansWithNet = res.data.map((p: any) => ({ ...p, _network_id: networkId }));
                         allFetchedPlans.push(...plansWithNet);
+                    } else if (res.error) {
+                        hasError = true;
+                        errorMessage = res.error;
                     }
                 });
+
+                if (hasError && allFetchedPlans.length === 0) {
+                    if (errorMessage.includes("401") || errorMessage.includes("API Error")) {
+                        setMessage({ type: 'error', text: 'Error 401: Check API Keys or Authentication.' });
+                    } else {
+                        setMessage({ type: 'error', text: `Failed to load data plans: ${errorMessage}` });
+                    }
+                    return; // Stop processing since there's an error and no plans
+                }
 
                 // Group Plans
                 const groups: Record<string, any[]> = {};

@@ -31,26 +31,12 @@ export class ISquareClient {
             'Content-Type': 'application/json',
         };
 
-        // 1. API Key / Secret Key Custom Headers (Preferred)
-        if (process.env.ISQUARE_API_KEY) {
-            headers['api-key'] = process.env.ISQUARE_API_KEY;
-        }
-        if (process.env.ISQUARE_SECRET_KEY) {
-            headers['secret-key'] = process.env.ISQUARE_SECRET_KEY;
-        }
-
-        // 2. Authorization Header Strategy
-        if (!headers['api-key']) {
-            if (process.env.ISQUARE_API_KEY) {
-                // Bearer Fallback
-                headers['Authorization'] = `Bearer ${process.env.ISQUARE_API_KEY}`;
-            } else if (process.env.ISQUARE_USERNAME && process.env.ISQUARE_PASSWORD) {
-                // Basic Auth Fallback (User provided valid credentials)
-                const credentials = Buffer.from(`${process.env.ISQUARE_USERNAME}:${process.env.ISQUARE_PASSWORD}`).toString('base64');
-                headers['Authorization'] = `Basic ${credentials}`;
-            } else {
-                console.warn("Missing ISQUARE credentials (API_KEY or USERNAME/PASSWORD)");
-            }
+        // Strict Basic Auth Strategy
+        if (process.env.ISQUARE_USERNAME && process.env.ISQUARE_PASSWORD) {
+            const credentials = Buffer.from(`${process.env.ISQUARE_USERNAME}:${process.env.ISQUARE_PASSWORD}`).toString('base64');
+            headers['Authorization'] = `Basic ${credentials}`;
+        } else {
+            console.warn("Missing ISQUARE credentials (USERNAME/PASSWORD)");
         }
 
         try {
@@ -126,8 +112,8 @@ export class ISquareClient {
 
         switch (type) {
             case 'data':
-                // Verified: /data/plans/
-                endpoint = '/data/plans/';
+                // Requested endpoint
+                endpoint = '/data/';
                 break;
             case 'tv':
                 // User reported /cable/services/ failed.
