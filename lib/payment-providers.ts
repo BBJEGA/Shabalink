@@ -77,20 +77,90 @@ export async function createStrowalletAccount(user: CreateVirtualAccountParams) 
     }
 }
 
+// --- Monnify Helpers ---
+async function getMonnifyAccessToken() {
+    if (!MONNIFY_API_KEY || !MONNIFY_SECRET) {
+        throw new Error("MONNIFY_API_KEY or MONNIFY_SECRET_KEY is missing");
+    }
+
+    try {
+        const credentials = Buffer.from(`${MONNIFY_API_KEY}:${MONNIFY_SECRET}`).toString('base64');
+        const response = await fetch(`${MONNIFY_URL}/api/v1/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Basic ${credentials}`
+            }
+        });
+
+        const data = await response.json();
+        if (!data.requestSuccessful) {
+            throw new Error(data.responseMessage || 'Monnify Authentication Failed');
+        }
+
+        return data.responseBody.accessToken;
+    } catch (error: any) {
+        console.error('Monnify Auth Error:', error);
+        throw error;
+    }
+}
+
 // --- Monnify Integration (Stage 2 - Post KYC) ---
 export async function createMonnifyAccount(user: CreateVirtualAccountParams) {
-    // TODO: Implement actual API call
-    // 1. Authenticate (Get Bearer Token)
-    // 2. Call Create Account endpoint
-    console.log('Creating Monnify account for:', user.email);
+    if (!MONNIFY_API_KEY || !MONNIFY_CONTRACT_CODE) {
+        console.warn("Monnify configuration missing. Using Mock Data.");
+        return {
+            success: true,
+            account_number: '9876543210',
+            account_name: `Shabalink - ${user.name}`,
+            bank_name: 'Wema Bank (Mock)'
+        };
+    }
 
-    // Mock Response
-    return {
-        success: true,
-        account_number: '9876543210',
-        account_name: `Shabalink - ${user.name}`,
-        bank_name: 'Wema Bank'
-    };
+    try {
+        const token = await getMonnifyAccessToken();
+
+        const payload = {
+            accountReference: `SM-${Date.now()}-${user.email.replace(/[@.]/g, '-')}`,
+            accountName: user.name,
+            currencyCode: "NGN",
+            contractCode: MONNIFY_CONTRACT_CODE,
+            customerEmail: user.email,
+            customerName: user.name,
+            getAllAvailableBanks: true,
+            // Use BVN if provided for higher tiers/limits
+            bvn: user.bvn
+        };
+
+        const response = await fetch(`${MONNIFY_URL}/api/v2/bank-transfer/reserved-accounts`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!data.requestSuccessful) {
+            throw new Error(data.responseMessage || 'Failed to create Monnify account');
+        }
+
+        // Monnify returns accounts in an array
+        const account = data.responseBody.accounts[0];
+
+        return {
+            success: true,
+            account_number: account.accountNumber,
+            account_name: account.accountName,
+            bank_name: account.bankName,
+            bank_code: account.bankCode,
+            reservation_reference: data.responseBody.reservationReference
+        };
+    } catch (error: any) {
+        console.error('Monnify API Error:', error);
+        throw new Error(error.message);
+    }
 }
 
 // --- BVN Verification ---
