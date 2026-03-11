@@ -46,14 +46,14 @@ export async function POST(request: Request) {
             profile = newProfile as any;
         }
 
-        if (profile.account_number) {
+        if (profile?.account_number) {
             return NextResponse.json({ message: 'User already has a virtual account', account: profile.account_number });
         }
 
         // 3. Generate Virtual Account (Tier 1)
         const accountData = await createStrowalletAccount({
-            email: profile.email || user.email || '',
-            name: profile.full_name || 'Shabalink User',
+            email: profile?.email || user.email || '',
+            name: profile?.full_name || 'Shabalink User',
         });
 
         if (!accountData.success) {
