@@ -31,7 +31,8 @@ export async function POST(request: Request) {
                 id: user.id,
                 email: user.email,
                 full_name: user.user_metadata?.full_name || 'Shabalink User',
-                wallet_balance: 0.00
+                wallet_balance: 0.00,
+                tier: 'level_1'
             };
 
             const { error: insertError } = await supabase
