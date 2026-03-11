@@ -79,14 +79,6 @@ export default function BuyDataPage() {
         return category;
     };
 
-    // Determine the root telecom ID required for the purchase API (1=MTN, 2=GLO, 3=9MOBILE, 4=AIRTEL)
-    const getRootNetworkId = (categoryName: string) => {
-        if (categoryName.includes('MTN')) return '1';
-        if (categoryName.includes('GLO')) return '2';
-        if (categoryName.includes('9MOBILE')) return '3';
-        if (categoryName.includes('AIRTEL')) return '4';
-        return '1'; // Default Fallback
-    };
 
     // Fetch ALL plans on mount
     useEffect(() => {
@@ -116,10 +108,6 @@ export default function BuyDataPage() {
 
                 allFetchedPlans.forEach((plan: any) => {
                     const categoryName = getNetworkCategoryName(plan);
-                    const rootNetId = getRootNetworkId(categoryName);
-
-                    // Inject root network ID for the transaction payload
-                    plan._root_network_id = rootNetId;
 
                     if (!groups[categoryName]) groups[categoryName] = [];
                     groups[categoryName].push(plan);
@@ -167,7 +155,7 @@ export default function BuyDataPage() {
                 ...prev,
                 plan_id: planId,
                 amount: plan.amount,
-                network_id: plan._root_network_id
+                network_id: String(plan.network) // Use the specific provider key (e.g. 6 for SME)
             }));
         }
     };

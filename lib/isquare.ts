@@ -89,11 +89,11 @@ export class ISquareClient {
     }
 
     // --- DATA ---
-    async buyData(params: { network_id: string; plan_id: string; phone: string; ref: string }) {
+    async buyData(params: { network_id: string | number; plan_id: string | number; phone: string; ref: string }) {
         // Endpoint: /data/buy/
         return this.request('/data/buy/', 'POST', {
-            network: params.network_id,
-            plan: params.plan_id,
+            network: Number(params.network_id), // Ensure numeric
+            plan: Number(params.plan_id),      // Ensure numeric
             mobile_number: params.phone,
             reference: params.ref,
             Ported_number: true
@@ -179,7 +179,8 @@ export class ISquareClient {
 
     async payElectricity(params: { disco_id: string; meter_number: string; amount: number; phone: string; ref: string }) {
         return this.request('/electricity/buy/', 'POST', {
-            service_id: params.disco_id,
+            service_id: params.disco_id, // Primary
+            disco_id: params.disco_id,   // Fallback for some API versions
             meter_number: params.meter_number,
             amount: params.amount,
             phone_number: params.phone,
@@ -197,11 +198,11 @@ export class ISquareClient {
         });
     }
 
-    async buyCable(params: { cable_id: string; plan_id: string; smartcard: string; phone: string; ref: string }) {
+    async buyCable(params: { cable_id: string | number; plan_id: string | number; smartcard: string; phone: string; ref: string }) {
         return this.request('/cable/buy/', 'POST', {
-            cable_id: params.cable_id,
-            plan_id: params.plan_id,
-            smartcard: params.smartcard,
+            cable_id: Number(params.cable_id),
+            plan_id: Number(params.plan_id),
+            smartcard_number: params.smartcard, // Use standard key
             phone_number: params.phone,
             reference: params.ref
         });
