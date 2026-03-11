@@ -36,7 +36,24 @@ export async function GET(request: Request) {
         // 2. Fetch Base Plans from Provider
         const apiType = type === 'cable' ? 'tv' : (type as any);
         const response = await isquare.getVariations(apiType); // NO serviceId restriction
-        let plans = Array.isArray(response) ? response : (response.data || response.variations || []);
+        let rawPlans = Array.isArray(response) ? response : (response.data || response.variations || []);
+
+        let plans = rawPlans;
+        if (type === 'cable') {
+            const flattened: any[] = [];
+            for (const provider of rawPlans) {
+                if (provider.plans && Array.isArray(provider.plans)) {
+                    for (const p of provider.plans) {
+                        flattened.push({
+                            ...p,
+                            cable_id: String(provider.id),
+                            cable_name: provider.name
+                        });
+                    }
+                }
+            }
+            if (flattened.length > 0) plans = flattened;
+        }
 
         // 3. Apply Pricing Logic
         const pricedPlans = plans.map((plan: Record<string, unknown>) => {

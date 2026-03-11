@@ -116,9 +116,8 @@ export class ISquareClient {
                 endpoint = '/data/plans/';
                 break;
             case 'tv':
-                // User reported /cable/services/ failed.
-                // Trying base /cable/ which often lists categories/plans in REST APIs
-                endpoint = '/cable/';
+                // Final fix: Discovered actual API list for Cable TV
+                endpoint = '/cable/services/';
                 break;
             case 'electricity':
                 // Verified: /electricity/services/

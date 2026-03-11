@@ -24,12 +24,25 @@ export async function POST(request: Request) {
         // 1. Get Plan Cost
         let planCost = 0;
         try {
-            const services = await isquare.getServices('cable');
-            const plan = services.find((p: any) => p.id === plan_id || p.plan_id === plan_id);
+            const response = await isquare.getVariations('tv');
+            const providers = Array.isArray(response) ? response : (response.data || response.variations || []);
+            let plan;
+
+            for (const provider of providers) {
+                if (provider.plans && Array.isArray(provider.plans)) {
+                    const found = provider.plans.find((p: any) => String(p.id) === String(plan_id) || String(p.plan_id) === String(plan_id));
+                    if (found) {
+                        plan = found;
+                        break;
+                    }
+                }
+            }
+
             if (!plan) throw new Error('Invalid Plan');
-            planCost = Number(plan.amount);
-        } catch (e) {
-            return NextResponse.json({ error: 'Invalid Plan ID' }, { status: 400 });
+
+            planCost = Number(plan.api_amount || plan.amount || plan.reseller_amount || plan.enduser_amount) || 0;
+        } catch (e: any) {
+            return NextResponse.json({ error: 'Failed to fetch plan details: ' + e.message }, { status: 400 });
         }
 
         // 2. Validation & Profile
