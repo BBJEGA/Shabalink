@@ -17,14 +17,33 @@ export async function POST(request: Request) {
 
     try {
         // 2. Check if user already has an account
-        const { data: profile, error: profileError } = await supabase
+        let { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('account_number, full_name, email')
             .eq('id', user.id)
             .single();
 
+        // Lazy Initialization: If the trigger failed or was dropped, create the profile securely here.
         if (profileError || !profile) {
-            return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+            console.log('Profile not found, performing lazy initialization...');
+
+            const newProfile = {
+                id: user.id,
+                email: user.email,
+                full_name: user.user_metadata?.full_name || 'Shabalink User',
+                wallet_balance: 0.00
+            };
+
+            const { error: insertError } = await supabase
+                .from('profiles')
+                .insert([newProfile]);
+
+            if (insertError) {
+                console.error('Lazy init insert error:', insertError.message);
+                return NextResponse.json({ error: 'Failed to initialize new profile: ' + insertError.message }, { status: 500 });
+            }
+
+            profile = newProfile as any;
         }
 
         if (profile.account_number) {
