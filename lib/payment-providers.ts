@@ -34,36 +34,44 @@ export async function createStrowalletAccount(user: CreateVirtualAccountParams) 
     }
 
     try {
-        // 1. Create a user/wallet on Strowallet
-        // Note: Endpoint and payload structure should be verified with Strowallet docs
-        const response = await fetch(`${STROWALLET_URL}/create-account`, {
+        const nameParts = user.name.split(' ');
+        const firstName = nameParts[0] || 'Shabalink';
+        const lastName = nameParts.slice(1).join(' ') || 'User';
+
+        const payload = {
+            public_key: STROWALLET_API_KEY,
+            first_name: firstName,
+            last_name: lastName,
+            phone: user.phone || '00000000000',
+            email: user.email,
+            account_name: user.name, // Required by Strowallet
+            // Base URL webhook logic or hardcoded string if needed
+            webhook_url: process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/strowallet` : "https://shabalink.vercel.app/api/webhooks/strowallet"
+        };
+
+        const response = await fetch(`https://strowallet.com/api/virtual-bank/palmpay/`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${STROWALLET_API_KEY}` // or whatever auth scheme they use
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                customer_name: user.name,
-                customer_email: user.email,
-                customer_phone: user.phone || '',
-                nin: '', // Optional/Required depending on provider
-                bvn: ''  // Not needed for Tier 1 usually
-            })
+            body: JSON.stringify(payload)
         });
 
         const data = await response.json();
 
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to create Strowallet account');
+        if (!data.success) {
+            // Check for validation errors like data.message.account_name
+            const errMsg = typeof data.message === 'object' ? JSON.stringify(data.message) : data.message;
+            throw new Error(errMsg || 'Failed to create Strowallet account');
         }
 
         return {
             success: true,
             account_number: data.account_number,
             account_name: data.account_name,
-            bank_name: data.bank_name || 'Palmpay'
+            bank_name: data.bank_name
         };
-    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
         console.error('Strowallet API Error:', error);
         throw new Error(error.message);
     }
