@@ -92,11 +92,12 @@ export class ISquareClient {
     async buyData(params: { network_id: string | number; plan_id: string | number; phone: string; ref: string }) {
         // Endpoint: /data/buy/
         return this.request('/data/buy/', 'POST', {
-            network: Number(params.network_id), // Ensure numeric
-            plan: Number(params.plan_id),      // Ensure numeric
-            mobile_number: params.phone,
+            network: Number(params.network_id),
+            plan: Number(params.plan_id),
+            phone_number: params.phone, // Standardized key
             reference: params.ref,
-            Ported_number: true
+            ported_number: true,        // Standardized lowercase
+            disable_validation: false   // Added for consistency
         });
     }
 

@@ -67,7 +67,7 @@ export async function POST(request: Request) {
 
     // 7. Call Provider
     try {
-        const transactionRef = `DATA-${Date.now()}-${user.id.slice(0, 4)}`;
+        const transactionRef = `D-${Date.now()}-${user.id.slice(0, 4)}`;
 
         const apiResponse = await isquare.buyData({
             network_id,

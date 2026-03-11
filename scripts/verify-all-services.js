@@ -19,9 +19,10 @@ const shaping = {
     buyData: (params) => ({
         network: Number(params.network_id),
         plan: Number(params.plan_id),
-        mobile_number: params.phone,
+        phone_number: params.phone, // Updated key
         reference: params.ref,
-        Ported_number: true
+        ported_number: true,         // Updated case
+        disable_validation: false
     }),
     buyAirtime: (params) => ({
         network: params.network_id,
