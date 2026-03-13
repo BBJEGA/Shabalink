@@ -99,7 +99,6 @@ export class ISquareClient {
             plan: Number(params.plan_id),
             phone_number: params.phone, // Standardized key
             reference: params.ref,
-            ported_number: true,        // Standardized lowercase
             disable_validation: false   // Added for consistency
         });
     }

@@ -151,11 +151,23 @@ export default function BuyDataPage() {
 
         if (plan) {
             setSelectedPlanId(planId);
+            
+            // ISquareData's buyData API expects the primary network ID (1=MTN, 2=GLO, etc)
+            // But the plans list returns a sub-category ID (e.g. 15 for MTN DATA TRANSFER, 6 for GLO SME).
+            // We must map it back to the primary network ID.
+            const pName = (plan.name || '').toUpperCase();
+            let rootNetworkId = String(plan.network); // Fallback
+            
+            if (pName.includes('MTN') || pName.includes('THRYVE') || pName.includes('PULSE')) rootNetworkId = '1';
+            else if (pName.includes('GLO')) rootNetworkId = '2';
+            else if (pName.includes('9MOBILE')) rootNetworkId = '3';
+            else if (pName.includes('AIRTEL') || pName.includes('BINGE')) rootNetworkId = '4';
+
             setFormData(prev => ({
                 ...prev,
                 plan_id: planId,
                 amount: plan.amount,
-                network_id: String(plan.network) // Use the specific provider key (e.g. 6 for SME)
+                network_id: rootNetworkId 
             }));
         }
     };
