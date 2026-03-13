@@ -18,7 +18,7 @@ export default function BankDetails({ accountName, accountNumber, bankName = "PA
     };
 
     return (
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-8">
+        <div id="bank-details" className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-8 scroll-mt-24">
             <div className="flex items-center gap-2 mb-4">
                 <h3 className="font-bold text-gray-800">Automated Bank Transfer</h3>
                 <span className="text-xl">👇👇👇</span>

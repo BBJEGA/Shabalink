@@ -17,12 +17,16 @@ export default function WelcomeHeader({ name = "User" }: WelcomeHeaderProps) {
                 </p>
 
                 <div className="space-y-3">
-                    <button className="w-full bg-lime-500 hover:bg-lime-600 text-white font-bold py-3 px-6 rounded-xl shadow-sm transition-colors">
-                        Fund Wallet
-                    </button>
-                    <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-sm transition-colors">
-                        Update Your KYC
-                    </button>
+                    <Link href="#bank-details" className="block w-full">
+                        <button className="w-full bg-lime-500 hover:bg-lime-600 text-white font-bold py-3 px-6 rounded-xl shadow-sm transition-colors">
+                            Fund Wallet
+                        </button>
+                    </Link>
+                    <Link href="/dashboard/profile" className="block w-full">
+                        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-sm transition-colors">
+                            Update Your KYC
+                        </button>
+                    </Link>
                 </div>
             </div>
 

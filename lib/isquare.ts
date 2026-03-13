@@ -59,7 +59,10 @@ export class ISquareClient {
 
             if (!response.ok) {
                 console.error(`ISquare API Error [${endpoint}] Status ${response.status}:`, data);
-                throw new Error(data.message || data.error || `API Error: ${response.status}`);
+                // Surface the full JSON data structure if a flat message/error string is not available,
+                // so we can see field-level validation errors like {"phone":["The phone field is required."]}
+                const errorStr = data.message || data.error || JSON.stringify(data);
+                throw new Error(`API Error: ${response.status} - ${errorStr}`);
             }
 
             return data;
