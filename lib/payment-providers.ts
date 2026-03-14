@@ -9,9 +9,9 @@ const STROWALLET_URL = 'https://strowallet.com/api/v1'; // Example URL
 const MONNIFY_API_KEY = process.env.MONNIFY_API_KEY;
 const MONNIFY_SECRET = process.env.MONNIFY_SECRET_KEY;
 const MONNIFY_CONTRACT_CODE = process.env.MONNIFY_CONTRACT_CODE;
-const MONNIFY_URL = process.env.NODE_ENV === 'production'
-    ? 'https://api.monnify.com'
-    : 'https://sandbox.monnify.com';
+const MONNIFY_URL = process.env.MONNIFY_IS_SANDBOX === 'true' 
+    ? 'https://sandbox.monnify.com' 
+    : 'https://api.monnify.com';
 
 // --- Types ---
 interface CreateVirtualAccountParams {
