@@ -100,6 +100,8 @@ export default async function Dashboard() {
                                         accountName={`Shabalink - ${profile.full_name}`}
                                         accountNumber={profile.account_number}
                                         bankName={profile.bank_name || 'PALMPAY'}
+                                        monnifyAccountNumber={profile.monnify_account_number}
+                                        monnifyBankName={profile.monnify_bank_name}
                                     />
                                 ) : (
                                     <WalletInitializer

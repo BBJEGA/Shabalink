@@ -12,6 +12,7 @@ export default function ProfilePage() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [bvn, setBvn] = useState('');
+    const [dob, setDob] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -99,7 +100,7 @@ export default function ProfilePage() {
             const response = await fetch('/api/profile/upgrade', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ bvn })
+                body: JSON.stringify({ bvn, dob })
             });
 
             const data = await response.json();
@@ -176,6 +177,7 @@ export default function ProfilePage() {
                         </div>
                         <p className="text-sm text-gray-600 mb-4">
                             Get a personal business account (Monnify) with higher transaction limits and instant settlement.
+                            <br/><span className="text-red-600 font-bold text-xs">Note: A non-refundable ₦50 BVN Verification fee applies.</span>
                         </p>
                         <form onSubmit={handleUpgrade} className="space-y-4">
                             <input
@@ -188,11 +190,21 @@ export default function ProfilePage() {
                                 onChange={(e) => setBvn(e.target.value.replace(/\D/g, ''))}
                                 className="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none text-lg tracking-widest text-center"
                             />
-                            <button disabled={loading} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50">
-                                {loading ? 'Processing...' : 'Verify & Upgrade'}
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-gray-500 uppercase ml-1">Date of Birth</label>
+                                <input
+                                    type="date"
+                                    required
+                                    value={dob}
+                                    onChange={(e) => setDob(e.target.value)}
+                                    className="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none text-center text-gray-700 font-medium"
+                                />
+                            </div>
+                            <button disabled={loading} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                                {loading ? 'Processing...' : 'Verify & Upgrade (₦50)'}
                             </button>
                             <p className="text-[10px] text-gray-400 text-center italic">
-                                Your BVN is only used for identity verification as required by CBN.
+                                Your BVN and DOB are only used for identity verification as required by CBN.
                             </p>
                         </form>
                     </div>
