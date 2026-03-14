@@ -5,6 +5,8 @@ import { isquare } from '@/lib/isquare';
 import { createClient } from '@/utils/supabase/server';
 import { calculateVtuPrice } from '@/utils/pricing';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
     const body = await request.json();
     const { network_id, plan_id, phone, pin, amount } = body;
